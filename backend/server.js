@@ -2,14 +2,21 @@ const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const connectDB = require("./config/db");
-const WebSocket = require("ws");
+const { Server } = require("socket.io");
 const userRoutes = require("./routes/user");
 
 require("dotenv").config();
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+
+// Initialize Socket.IO
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000", // Replace with your frontend URL if different
+    methods: ["GET", "POST"],
+  },
+});
 
 // Connect to MongoDB
 connectDB();
@@ -18,15 +25,16 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/users", userRoutes);
 
-// WebSocket handling
-wss.on("connection", (ws) => {
-  ws.on("message", (message) => {
-    // Broadcast message to all connected clients
-    wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(message);
-      }
-    });
+// Socket.IO handling
+io.on("connection", (socket) => {
+  console.log("New client connected");
+
+  socket.on("message", (message) => {
+    io.emit("message", message); // Broadcast message to all clients
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
   });
 });
 

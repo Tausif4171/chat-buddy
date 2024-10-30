@@ -1,22 +1,30 @@
 import React, { useEffect, useState } from "react";
-import { io } from "socket.io-client";
 
 const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const socket = io("http://localhost:5002"); // Adjust URL as needed
 
   useEffect(() => {
-    socket.on("message", (message) => {
+    const socket = new WebSocket("ws://localhost:5002"); // Update URL if using different port
+
+    socket.onmessage = (event) => {
+      const message = JSON.parse(event.data);
       setMessages((prevMessages) => [...prevMessages, message]);
-    });
-  }, [socket]);
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, []);
 
   const sendMessage = (e) => {
     e.preventDefault();
     if (input) {
-      socket.emit("message", { content: input });
-      setInput("");
+      const socket = new WebSocket("ws://localhost:5002");
+      socket.onopen = () => {
+        socket.send(JSON.stringify({ content: input }));
+        setInput("");
+      };
     }
   };
 
