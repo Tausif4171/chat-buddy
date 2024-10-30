@@ -5,11 +5,32 @@ const Chat = () => {
   const [input, setInput] = useState("");
 
   useEffect(() => {
-    const socket = new WebSocket("ws://localhost:5002"); // Update URL if using different port
+    const socket = new WebSocket("ws://localhost:5002");
 
     socket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      setMessages((prevMessages) => [...prevMessages, message]);
+      const { data } = event;
+
+      // Check if data is a Blob
+      if (data instanceof Blob) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const message = JSON.parse(reader.result);
+            setMessages((prevMessages) => [...prevMessages, message]);
+          } catch (error) {
+            console.error("Error parsing JSON:", error);
+          }
+        };
+        reader.readAsText(data);
+      } else {
+        // If data is not a Blob, parse as JSON directly
+        try {
+          const message = JSON.parse(data);
+          setMessages((prevMessages) => [...prevMessages, message]);
+        } catch (error) {
+          console.error("Error parsing JSON:", error);
+        }
+      }
     };
 
     return () => {
