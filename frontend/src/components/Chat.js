@@ -1,51 +1,35 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
 const Chat = () => {
+  const { user, token } = useContext(AuthContext); // Get the token from AuthContext
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const socket = new WebSocket("ws://localhost:5002");
+    // Establish WebSocket connection with token
+    const ws = new WebSocket(`ws://localhost:5003?token=${token}`);
+    setSocket(ws);
 
-    socket.onmessage = (event) => {
-      const { data } = event;
-
-      // Check if data is a Blob
-      if (data instanceof Blob) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          try {
-            const message = JSON.parse(reader.result);
-            setMessages((prevMessages) => [...prevMessages, message]);
-          } catch (error) {
-            console.error("Error parsing JSON:", error);
-          }
-        };
-        reader.readAsText(data);
-      } else {
-        // If data is not a Blob, parse as JSON directly
-        try {
-          const message = JSON.parse(data);
-          setMessages((prevMessages) => [...prevMessages, message]);
-        } catch (error) {
-          console.error("Error parsing JSON:", error);
-        }
-      }
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      setMessages((prevMessages) => [...prevMessages, message]);
     };
 
-    return () => {
-      socket.close();
-    };
-  }, []);
+    return () => ws.close();
+  }, [token]);
 
   const sendMessage = (e) => {
     e.preventDefault();
     if (input) {
-      const socket = new WebSocket("ws://localhost:5002");
-      socket.onopen = () => {
-        socket.send(JSON.stringify({ content: input }));
-        setInput("");
-      };
+      socket.send(
+        JSON.stringify({
+          username: user.username,
+          content: input,
+        })
+      );
+      setInput("");
     }
   };
 
@@ -53,7 +37,10 @@ const Chat = () => {
     <div>
       <div>
         {messages.map((msg, index) => (
-          <div key={index}>{msg.content}</div>
+          <div key={index}>
+            <strong>{msg.username}</strong>: {msg.content}{" "}
+            <em>{msg.timestamp}</em>
+          </div>
         ))}
       </div>
       <form onSubmit={sendMessage}>
