@@ -1,3 +1,4 @@
+// Existing code
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -7,7 +8,6 @@ const router = express.Router();
 // Register User
 router.post("/register", async (req, res) => {
   const { username, password } = req.body;
-
   try {
     const existingUser = await User.findOne({ username });
     if (existingUser)
@@ -26,7 +26,6 @@ router.post("/register", async (req, res) => {
 // Login User
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
-
   try {
     const user = await User.findOne({ username });
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
@@ -39,6 +38,17 @@ router.post("/login", async (req, res) => {
       expiresIn: "1h",
     });
     res.json({ token });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// New endpoint to fetch all users
+router.get("/", async (req, res) => {
+  try {
+    const users = await User.find().select("-password"); // Exclude the password field
+    console.log(users);
+    res.json(users);
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
