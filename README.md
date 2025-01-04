@@ -2,7 +2,7 @@
 
 Welcome to **Chat Buddy**! 🎉 A friendly chat application designed to connect people and facilitate engaging conversations. Whether you're looking to make new friends or just chat about your interests, Chat Buddy is here for you! 💬
 
-## 🚀 Features
+<!-- ## 🚀 Features
 
 - **Real-time Chat**: Instant messaging with friends and new connections. 🔄
 - **User Profiles**: Create and customize your profile to showcase your personality. 👤
@@ -17,5 +17,5 @@ Welcome to **Chat Buddy**! 🎉 A friendly chat application designed to connect 
 
 ## 📦 Installation
 
-To get started with Chat Buddy, clone the repository and install the dependencies:
-
+To get started with Chat Buddy, clone the repository and install the dependencies.
+-->
